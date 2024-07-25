@@ -1,0 +1,30 @@
+FROM debian:latest
+
+# Install dependencies
+RUN apt-get update && \
+    apt-get install -y \
+        jq \
+        curl \
+        dnsutils \
+        python3-pip \
+        python3-venv && \
+    apt-get clean
+
+# Create a virtual environment and install Certbot and the Cloudflare DNS plugin
+RUN python3 -m venv /venv && \
+    /venv/bin/pip install --upgrade pip && \
+    /venv/bin/pip install certbot certbot-dns-cloudflare
+
+# Set the PATH to include the virtual environment binaries
+ENV PATH="/venv/bin:${PATH}"
+
+# Copy your scripts and configuration files
+COPY init-certbot.sh /app/init-certbot.sh
+COPY generate-nginx-conf.sh /app/generate-nginx-conf.sh
+COPY manage-dns-record.sh /app/manage-dns-record.sh
+
+# Make sure the scripts are executable
+RUN chmod +x /app/init-certbot.sh /app/generate-nginx-conf.sh /app/manage-dns-record.sh
+
+# Set the entrypoint
+ENTRYPOINT ["/bin/sh", "/app/init-certbot.sh"]

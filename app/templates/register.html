@@ -1,0 +1,30 @@
+{# Extends the layout.html template to use its structure and common elements #}
+{% extends "layout.html" %}
+
+{# Define the title block which will be inserted into the corresponding block in layout.html #}
+{% block title %}Register{% endblock %}
+
+{# Begin the content block which will be inserted into the corresponding block in layout.html #}
+{% block content %}
+    <h1>Register</h1> {# Render an <h1> heading with the text "Register" #}
+
+    {# Form for user registration. Uses the POST method to submit data to the server #}
+    <form action="{{ url_for('register') }}" method="POST">
+    
+        {# Label and input field for the username #}
+        <label for="username">Username:</label>
+        <input type="text" name="username" id="username" required> {# 'required' attribute ensures the field must be filled before submitting the form #}
+        <br> {# Line break for better layout #}
+        
+        {# Label and input field for the password #}
+        <label for="password">Password:</label>
+        <input type="password" name="password" id="password" required> {# 'required' attribute ensures the field must be filled before submitting the form #}
+        <br> {# Line break for better layout #}
+        
+        {# Submit button for the registration form #}
+        <button type="submit">Register</button>
+    </form>
+    
+    {# Link to the login page for users who already have an account #}
+    <p>Already have an account? <a href="{{ url_for('login') }}">Log in here</a></p>
+{% endblock %}

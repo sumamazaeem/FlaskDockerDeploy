@@ -1,0 +1,39 @@
+# Python specific
+__pycache__/
+*.pyc
+
+# Environment
+.env
+
+# Logs and databases
+*.log
+*.sqlite
+
+# Ignore virtual environment directories
+venv/
+env/
+
+# Ignore OS generated files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.idea/
+.vscode/
+
+# Ignore local configuration files
+#config.py
+
+# Ignore Docker related files
+docker-compose.override.yml
+
+# Ignore compiled Python files
+*.pyc
+
+# Ignore package files
+*.egg-info/
+*.egg
+
+# Ignore any local temporary files
+*.swp
+*~

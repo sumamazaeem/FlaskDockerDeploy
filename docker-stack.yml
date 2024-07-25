@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  db:
+    image: ${MARIADB_IMAGE_REPO_URL}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - FlaskDockerDeploy-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 1m
+      retries: 3
+      start_period: 1m
+      timeout: 5s
+
+  flask-app:
+    image: ${FLASK_IMAGE_REPO_URL}
+    environment:
+      FLASK_APP: app.py
+      DATABASE_URL: ${DATABASE_URL}
+      SECRET_KEY: ${SECRET_KEY}
+    depends_on:
+      - certbot-init
+    networks:
+      - FlaskDockerDeploy-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost:5000/ | grep '200' || exit 1"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+
+  nginx:
+    image: ${NGINX_IMAGE_REPO_URL}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - certs:/etc/letsencrypt
+      - certs-data:/data/letsencrypt
+      - ./generate-nginx-conf.sh:/app/generate-nginx-conf.sh
+      - ./nginx.conf.template:/app/nginx.conf.template
+      - ./dummy-ssl-dhparams.pem:/etc/letsencrypt/ssl-dhparams.pem:ro
+    environment:
+      WEBSITE_URL: ${WEBSITE_URL}
+      FLASK_APP_SERVICE_HOST: ${FLASK_APP_SERVICE_HOST}
+      FLASK_APP_SERVICE_PORT: ${FLASK_APP_SERVICE_PORT}
+    depends_on:
+      - certbot-init
+    networks:
+      - FlaskDockerDeploy-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    entrypoint: >
+      sh -c "envsubst '\$${WEBSITE_URL} \$${FLASK_APP_SERVICE_HOST} \$${FLASK_APP_SERVICE_PORT}' < /app/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    healthcheck:
+      test: ["CMD", "sh", "-c", "curl -s -o /dev/null -w '%{http_code}' http://localhost | grep '200' || exit 1"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+
+  certbot-init:
+    image: ${CERTBOT_INIT_IMAGE_REPO_URL}
+    volumes:
+      - certs:/etc/letsencrypt
+      - certs-data:/data/letsencrypt
+      - ./.env:/app/.env
+    environment:
+      WEBSITE_URL: ${WEBSITE_URL}
+      LETSENCRYPT_EMAIL: ${EMAIL}
+      LETSENCRYPT_DOMAIN: ${WEBSITE_URL}
+      DNS_PROVIDER: ${DNS_PROVIDER}
+      DNS_CLOUDFLARE_API_TOKEN: ${DNS_CLOUDFLARE_API_TOKEN}
+      CLOUDFLARE_API_URL: ${CLOUDFLARE_API_URL}
+      CLOUDFLARE_DNS_RECORD_TYPE: ${CLOUDFLARE_DNS_RECORD_TYPE}
+      CLOUDFLARE_IP_ADDRESS: ${CLOUDFLARE_IP_ADDRESS}
+      ZONE_ID: ${ZONE_ID}
+    entrypoint: ["/bin/sh", "/app/init-certbot.sh"]
+    networks:
+      - FlaskDockerDeploy-network
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: ["CMD", "test", "-f", "/data/letsencrypt/certbot_done.flag"]
+      interval: 30s
+      retries: 3
+      start_period: 60s
+      timeout: 10s
+
+volumes:
+  db_data:
+  certs:
+  certs-data:
+
+networks:
+  FlaskDockerDeploy-network:
+    driver: overlay

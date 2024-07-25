@@ -1,0 +1,20 @@
+{# Extends the layout.html template to use its structure and common elements #}
+{% extends "layout.html" %}
+
+{# Define the title block which will be inserted into the corresponding block in layout.html. #}
+{% block title %}Blog List{% endblock %}
+
+{# Begin the content block which will be inserted into the corresponding block in layout.html. #}
+{% block content %}
+<h2>Blog Posts</h2>
+
+{# Display a list of blog posts. Loop through each post in the posts list. #}
+<ul>
+    {% for post in posts %}
+        <li>
+            {# Create a link for each blog post, linking to the blog_post view with the post's title as a parameter. #}
+            <a href="{{ url_for('blog_post', title=post.title) }}">{{ post.title }}</a>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}

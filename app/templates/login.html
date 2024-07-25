@@ -1,0 +1,25 @@
+{# Extends the layout.html template to use its structure and common elements #}
+{% extends "layout.html" %}
+
+{# Define the title block which will be inserted into the corresponding block in layout.html #}
+{% block title %}Login{% endblock %}
+
+{# Begin the content block which will be inserted into the corresponding block in layout.html #}
+{% block content %}
+<h2>Login</h2> {# Render an <h2> heading with the text "Login" #}
+
+{# Form for user login. Uses the POST method to submit data to the server #}
+<form method="post">
+
+    {# Label and input field for the username #}
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" required> {# 'required' attribute ensures the field must be filled before submitting the form #}
+
+    {# Label and input field for the password #}
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required> {# 'required' attribute ensures the field must be filled before submitting the form #}
+
+    {# Submit button for the login form #}
+    <button type="submit">Login</button>
+</form>
+{% endblock %}

@@ -1,0 +1,11 @@
+{# Extends the layout.html template to use its structure and common elements #}
+{% extends "layout.html" %}
+
+{# Define the title block, substituting it with the title of the current post #}
+{% block title %}{{ post.title }}{% endblock %}
+
+{# Begin the content block which will be inserted into the corresponding block in layout.html #}
+{% block content %}
+<h2>{{ post.title }}</h2> {# Display the title of the blog post #}
+<p>{{ post.content }}</p> {# Display the content of the blog post #}
+{% endblock %}
